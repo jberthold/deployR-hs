@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module DeployR where
 -- this will be split into several files, just for notes right now
@@ -94,7 +95,7 @@ type DeployRScriptAPI =
 -- | execution of code in project context
 type DeployRExecAPI =
     "execute" :> ( "code" {- :> ReqBody missing -}
-                          :> Post '[JSON] DRResponse
+                          :> Post '[JSON] (DRResponse ())
                    :<|> "script" {- :> ReqBody missing -}
                                  :> Post '[JSON] (DRResponse ())
                    :<|> "flush" {- :> ReqBody missing -}
@@ -118,6 +119,8 @@ data DRResponse a = DRResponse {
     }
     deriving (Eq, Show, Read, Generic)
 
+instance (FromJSON a) => FromJSON (DRResponse a)
+
 -- This extra field will probably end up ugly for *JSON instances.
 -- The other option is to repeat all fields over and over...
 
@@ -134,40 +137,50 @@ instance Read Format where readsPrec _ input
                                    = [(FormatJSON, drop 4 input)]
                                | otherwise = []
 
+instance ToJSON Format
+
 -- | user login, with password
 data LoginData = LoginData {
-      format1   :: Format -- TODO use ghc-8! (duplicate record field names)
+      format   :: Format -- requires ghc-8 (duplicate record field names)
     , username :: Text 
     , password :: Text
     , disableautosave :: Maybe Bool
     }
     deriving (Eq, Show, Read, Generic)
 
+instance ToJSON LoginData
+
 -- | user login, with password
 data LogoutData = LogoutData {
-      format2   :: Format -- "json"
+      format   :: Format -- "json"
 --    , usercookie :: Maybe Text -- unused
     }
     deriving (Eq, Show, Read, Generic)
 
+instance ToJSON LogoutData
+
 -- | response to login
 data DRUser = DRUser {
-      username1 :: Text -- TODO use ghc-8
+      username    :: Text
     , displayname :: Text
-    , cookie :: Text
+    , cookie      :: Text
     , permissions :: DRPermissions
     -- this is the "user" structure, "limits" struture has been omitted
     }
     deriving (Eq, Show, Read, Generic)
 
+instance FromJSON DRUser
+
 data DRPermissions = DRPermissions {
-      scriptManager :: Bool
-    , powerUser :: Bool
+      scriptManager  :: Bool
+    , powerUser      :: Bool
     , packageManager :: Bool
-    , administrator :: Bool
-    , basicUser :: Bool
+    , administrator  :: Bool
+    , basicUser      :: Bool
     }
     deriving (Eq, Show, Read, Generic)
+
+instance FromJSON DRPermissions
 
 data DRFile = DRFile {
       filename  :: FilePath
@@ -182,3 +195,10 @@ data DRFile = DRFile {
     -- plus some version and access stuff which was not modelled
     }
     deriving (Eq, Show, Read, Generic)
+
+instance FromJSON DRFile
+
+------------------------------------------------------------
+-- testing
+worx    = client (Proxy :: Proxy DeployRScriptAPI) -- but is incomplete
+-- doznwok = client (Proxy :: Proxy DeployRUserAPI)
