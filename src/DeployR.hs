@@ -25,86 +25,107 @@ import DeployR.Types -- Data types for the API
 ----------------------------
 -- DeployR API spec, grouped
 
-type DeployRAPI = DeployRUserAPI
+-- | overall API. Everything starts by "r"
+type DeployRAPI =
+  "r" :>
+  (      DeployRUserAPI
     :<|> DeployRProjectAPI
     :<|> DeployRRepoAPI
     -- :<|> DeployRJobAPI :<|> DeployREventAPI -- irrelevant for our use case
+  )
 
+-- | User login, logout (Info and options not implemented)
 type DeployRUserAPI =
-    "r" :> "user" :>
-    ( "login" :> ReqBody '[FormUrlEncoded] LoginData
-              :> Post '[JSON] (DRResponse DRUser)
+    "user" :>
+    (      "login" :> ReqBody '[FormUrlEncoded] LoginData
+                   :> Post '[JSON] (DRResponse DRUser)
       :<|> "logout" :> ReqBody '[FormUrlEncoded] LogoutData
                     :> Post '[JSON] (DRResponse ())
     )
 
+------------------------------------------------------------
+-- | Project API: execution in context, project files, workspace (R
+-- environment), project management (TODO not implemented)
 type DeployRProjectAPI =
-    "r" :> "project" :>
-            (      DeployRDirAPI  -- also without a project. Same?
-              :<|> DeployRExecAPI -- not the same as "script" for repo
-              :<|> DeployRWorkspaceAPI -- specific to projects
-              -- :<|> DeployROtherAPI -- creation, access, closing
-              --                      -- (sin-bin approach)
-            )
+    "project" :>
+    (      DeployRExecAPI -- execute in project (differs from "script" in repo
+      :<|> DeployRPDirAPI -- project dir API, differs from Repo Dir API
+      :<|> DeployRWorkspaceAPI -- specific to projects
+      -- :<|> DeployROtherAPI -- creation, access, closing (sin-bin approach)
+    )
 
+-- | execution of code in project context
+type DeployRExecAPI =
+    "execute" :>
+    ( "code" -- :> ReqBody missing
+             :> Post '[JSON] (DRResponse ())
+      :<|> "script" -- :> ReqBody missing
+              :> Post '[JSON] (DRResponse ())
+      :<|> "flush" -- :> ReqBody missing
+              :> Post '[JSON] (DRResponse ())
+              -- TODO wrong response type
+      -- and a few more, concerned with exec. history, not too relevant for us
+    )
+
+-- | Directory of a project
+type DeployRPDirAPI =
+    "directory" :>
+    (      "list" -- :> Capture something missing
+             :> Get '[JSON] (DRResponse [DRFile])
+      :<|> "upload" -- :> ReqBody something missing
+             :> Post '[JSON] (DRResponse DRFile)
+      -- and a lot more...
+    )
+
+-- | Workspace of projects (R environment)
+type DeployRWorkspaceAPI =
+    "workspace" :>
+    (       "list" -- :> Capture something missing
+              :> Get '[JSON] (DRResponse ()) -- TODO wrong response type
+     -- and a lot more...
+    )
+
+------------------------------------------------------------
+-- File Repository API: directories (1 level), files, script execution
 type DeployRRepoAPI =
-    "r" :> "repository" :>
-            ( DeployRDirAPI 
-              :<|> DeployRFileAPI
-              :<|> DeployRScriptAPI
---              :<|> DeployRRepoMoreStuff -- all that we could not fit
+    "repository" :>
+    (      DeployRDirAPI    -- repo dir API
+      :<|> DeployRFileAPI   -- repo file API
+      :<|> DeployRScriptAPI -- script listing and execution
+--    :<|> DeployRRepoMoreStuff -- all that we could not fit
             )
 
--- shared sub-APIs
 -- | Directories in projects and repository
 type DeployRDirAPI = 
-    -- TODO misunderstanding, "list" is different for the repository!
-    "directory" :> ( "list" {- :> Capture something missing -}
-                       :> Get '[JSON] (DRResponse [DRFile])
-                :<|> "upload" {- :> ReqBody something missing -}
-                              :> Post '[JSON] (DRResponse DRFile)
-                -- and a lot more...
-              )
-
--- | Directories in projects and repository
-type DeployRWorkspaceAPI = 
-    "workspace" :> ( "list" {- :> Capture something missing -}
-                            :> Get '[JSON] (DRResponse ())
-                   -- TODO not really unit, define response type
-                   -- and a lot more...
-              )
+    "directory" :>
+    (      "list" -- :> Capture something missing
+              :> Get '[JSON] (DRResponse ()) -- TODO wrong return type
+      :<|> "upload" -- :> ReqBody something missing
+              :> Post '[JSON] (DRResponse DRFile)
+      -- and a lot more...
+    )
 
 -- | Files in the repository
 type DeployRFileAPI = 
-    "file" :> ( "list" {- :> Capture something missing -}
-                       :> Get '[JSON] (DRResponse [DRFile])
-                :<|> "upload" {- :> ReqBody something missing -}
-                              :> Post '[JSON] (DRResponse DRFile)
-                -- and a lot more...
-              )
+    "file" :>
+    (      "list" -- :> Capture something missing -}
+              :> Get '[JSON] (DRResponse [DRFile])
+      :<|> "upload" {- :> ReqBody something missing -}
+              :> Post '[JSON] (DRResponse DRFile)
+      -- and a lot more...
+    )
 
 -- | execution and query of scripts that reside in the repository.
 -- Not corresponding to execution of scripts in projects (although
 -- largely similar)
 type DeployRScriptAPI =
-    "script" :> ( "list" {- :> QueryParam missing -}
-                         :> Get '[JSON] [DRFile]
-                  :<|> "execute" {- :> ReqBody missing -}
-                                 :> Post '[JSON] (DRResponse ())
-                -- and two more ... 
-                )
-
--- | execution of code in project context
-type DeployRExecAPI =
-    "execute" :> ( "code" {- :> ReqBody missing -}
-                          :> Post '[JSON] (DRResponse ())
-                   :<|> "script" {- :> ReqBody missing -}
-                                 :> Post '[JSON] (DRResponse ())
-                   :<|> "flush" {- :> ReqBody missing -}
-                                :> Post '[JSON] (DRResponse ())
-                   -- TODO proper result type. Unit is wrong here.
-                   -- and a few more, concerned with exec. history
-                 )
+    "script" :>
+    (      "list" {- :> QueryParam missing -}
+              :> Get '[JSON] [DRFile]
+      :<|> "execute" {- :> ReqBody missing -}
+              :> Post '[JSON] (DRResponse ())
+      -- and two more ...
+    )
 
 ------------------------------------------------------------
 -- testing
