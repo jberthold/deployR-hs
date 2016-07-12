@@ -57,13 +57,12 @@ type DeployRProjectAPI =
 -- | execution of code in project context
 type DeployRExecAPI =
     "execute" :>
-    ( "code" -- :> ReqBody missing
-             :> Post '[JSON] (DRResponse ())
-      :<|> "script" -- :> ReqBody missing
-              :> Post '[JSON] (DRResponse ())
+    ( "code" :> ReqBody ExecCode
+             :> Post '[JSON] (DRResponse ExecResult)
+      :<|> "script" :> ReqBody ExecScript
+              :> Post '[JSON] (DRResponse ExecResult)
       :<|> "flush" -- :> ReqBody missing
-              :> Post '[JSON] (DRResponse ())
-              -- TODO wrong response type
+              :> Post '[JSON] (DRResponse ()) -- TODO wrong response type
       -- and a few more, concerned with exec. history, not too relevant for us
     )
 
@@ -71,9 +70,9 @@ type DeployRExecAPI =
 type DeployRPDirAPI =
     "directory" :>
     (      "list" -- :> Capture something missing
-             :> Get '[JSON] (DRResponse [DRFile])
+             :> Get '[JSON] (DRResponse [ProjectFile])
       :<|> "upload" -- :> ReqBody something missing
-             :> Post '[JSON] (DRResponse DRFile)
+             :> Post '[JSON] (DRResponse ProjectFile)
       -- and a lot more...
     )
 
@@ -101,7 +100,7 @@ type DeployRDirAPI =
     (      "list" -- :> Capture something missing
               :> Get '[JSON] (DRResponse ()) -- TODO wrong return type
       :<|> "upload" -- :> ReqBody something missing
-              :> Post '[JSON] (DRResponse DRFile)
+              :> Post '[JSON] (DRResponse RepoFile)
       -- and a lot more...
     )
 
@@ -109,9 +108,9 @@ type DeployRDirAPI =
 type DeployRFileAPI = 
     "file" :>
     (      "list" -- :> Capture something missing -}
-              :> Get '[JSON] (DRResponse [DRFile])
+              :> Get '[JSON] (DRResponse [RepoFile])
       :<|> "upload" {- :> ReqBody something missing -}
-              :> Post '[JSON] (DRResponse DRFile)
+              :> Post '[JSON] (DRResponse RepoFile)
       -- and a lot more...
     )
 
@@ -121,7 +120,7 @@ type DeployRFileAPI =
 type DeployRScriptAPI =
     "script" :>
     (      "list" {- :> QueryParam missing -}
-              :> Get '[JSON] [DRFile]
+              :> Get '[JSON] [RepoScript]
       :<|> "execute" {- :> ReqBody missing -}
               :> Post '[JSON] (DRResponse ())
       -- and two more ...
@@ -129,5 +128,4 @@ type DeployRScriptAPI =
 
 ------------------------------------------------------------
 -- testing
-worx    = client (Proxy :: Proxy DeployRScriptAPI) -- but is incomplete
--- doznwok = client (Proxy :: Proxy DeployRUserAPI)
+deployRAPI = client (Proxy :: Proxy DeployRAPI) -- incomplete!
