@@ -154,11 +154,12 @@ data ExecResult = ExecResult {
 
 instance FromJSON ExecResult
 instance FromJSONPayload ExecResult where
-  parseJSONPayload r = ExecResult
-                       <$> r .: interrupted
-                       <*> r .: "project" >>= parseJSON
-                       <*> r .: "workspace" .: "objects" >>= parseJSON
-                       <*> r .: "execution" >>= parseJSON
+  parseJSONPayload r = do
+      interrupted <- r .: "interrupted"
+      project     <- r .: "project" >>= parseJSON
+      objects     <- r .: "workspace" >>= (.: "objects") >>= parseJSON
+      execution   <- r .: "execution" >>= parseJSON
+      return ExecResult{..}
 
 data DRProject = DRProject {
       project :: Text
@@ -168,9 +169,87 @@ data DRProject = DRProject {
     }
     deriving (Eq, Show, Read, Generic)
 
-instance FromJSON ExecResult
+instance FromJSON DRProject
 
+-- | Objects retrieved from R. We keep this simple for now, but it
+-- probably needs review or restrictions to become fully useful.
+data RObject = RInt  Int -- ^ R integer type
+             | RDouble Double -- ^ R double type
+             | RString Text   -- ^ R character type (also factor)
+             | RVectorD [Double] -- ^Vector of R doubles
+             | RVectorI [Int]    -- ^Vector of R integers
+             | RVectorS [Text]   -- ^Vector of R characters
+               -- TODO switch to Vector
+               -- clumsy... but now we can derive
+    deriving (Read, Generic)
 
+instance Show RObject where
+    show (RInt i)     = show i
+    show (RDouble d)  = show d
+    show (RString s)  = show (T.unpack s)
+    show (RVectorD as) = show as
+    show (RVectorI as) = show as
+    show (RVectorS as) = show as
+
+instance Eq RObject where
+    (RInt i1)    == (RInt i2)    = i1 == i2
+    (RDouble d1) == (RDouble d2) = d1 == d2
+    (RString s1) == (RString s2) = s1 == s2
+    (RVectorD as1)==(RVectorD as2) = as1 == as2
+    (RVectorI as1)==(RVectorI as2) = as1 == as2
+    (RVectorS as1)==(RVectorS as2) = as1 == as2
+    some1        == some2        =
+        fromR some1 == (fromR some2 :: Either String Text)
+    -- brutally compare as text.
+    -- TODO This is inconsistent if the result is not used as string
+    -- later (consider RVector [1,2,3] == RString "[1,2,3]" but the
+    -- right side crashes on sum . fromR). A silent string cast (using
+    -- Read) would fix this, but how far do we want to take auto-casts?
+    --   Alternative: intensional equality, all else unequal.
+
+instance FromJSON RObject
+    -- will need more work to make it really work. Must distinguish
+    -- types from information in the R object.
+
+-- | all types that can be returned from R, and their conversions to Hs
+class RType a where
+    fromR :: RObject -> Either String a  -- ^ read a value from R into Hs
+    -- we do not plan to push Hs values to R - at least not yet.
+
+instance RType Int where
+    fromR (RInt i) = Right i
+    fromR other    = Left $ "type mismatch: " ++ show other ++ " not int"
+
+instance RType Double where
+    fromR (RDouble d) = Right d
+    fromR (RInt i)    = Right $ fromIntegral i
+    fromR other    = Left $ "type mismatch: " ++ show other ++ " not double"
+
+instance RType Text where
+    fromR (RInt i)     = Right $ T.pack (show i)
+    fromR (RDouble d)  = Right $ T.pack (show d)
+    fromR (RString s)  = Right $ s
+    fromR (RVectorD as) = Right $ T.pack (show as)
+    fromR (RVectorI as) = Right $ T.pack (show as)
+    fromR (RVectorS as) = Right $ T.intercalate "," as
+
+instance RType [Double] where
+    fromR (RVectorD as) = Right as
+    fromR (RVectorI is) = Right $ map fromIntegral is
+    fromR other = Left $ "type mismatch: " ++ show other ++ " not double Vector"
+
+instance RType [Int] where
+    fromR (RVectorI is) = Right is
+    fromR other = Left $ "type mismatch: " ++ show other ++ " not int Vector"
+
+data DRExecution = DRExecution {
+      console :: Text
+    , code    :: Text
+--     , and more things
+    }
+        deriving (Eq, Show, Read, Generic)
+
+instance FromJSON DRExecution
 
 --------------------------------------------------
 -- input data (will be used in ReqBody FormUrlEncoded)

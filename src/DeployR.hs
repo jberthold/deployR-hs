@@ -57,9 +57,9 @@ type DeployRProjectAPI =
 -- | execution of code in project context
 type DeployRExecAPI =
     "execute" :>
-    ( "code" :> ReqBody ExecCode
+    ( "code" :> ReqBody '[FormUrlEncoded] ExecCode
              :> Post '[JSON] (DRResponse ExecResult)
-      :<|> "script" :> ReqBody ExecScript
+      :<|> "script" :> ReqBody '[FormUrlEncoded] ExecScript
               :> Post '[JSON] (DRResponse ExecResult)
       :<|> "flush" -- :> ReqBody missing
               :> Post '[JSON] (DRResponse ()) -- TODO wrong response type
