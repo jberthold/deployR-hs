@@ -2,6 +2,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module DeployR.Types where
 
@@ -11,8 +13,9 @@ import GHC.Generics
 import Data.Text(Text)
 import qualified Data.Text as T
 import Data.List(isPrefixOf)
+import Data.Maybe(catMaybes)
 
-
+import Servant.API -- for instances
 
 ---------------------------------
 -- Data types for the deployR API
@@ -83,16 +86,18 @@ instance FromJSON DRFile
 
 -- form data types, replicating required deployR input format exactly
 
--- | tired to write this over and over again, we always use json anyway
+-- tired to write this over and over again, we always use json anyway
 data Format = FormatJSON deriving (Eq, Generic) -- will this work?
-
 instance Show Format where show _ = "json"
 instance Read Format where readsPrec _ input
                                | "json" `isPrefixOf` input
                                    = [(FormatJSON, drop 4 input)]
                                | otherwise = []
+instance ToJSON Format where
 
-instance ToJSON Format
+-- | even simpler: include this in every POST and request
+formatEncoded :: (Text, Text)
+formatEncoded = ("format", "json")
 
 -- | user login, with password
 data LoginData = LoginData {
@@ -104,13 +109,40 @@ data LoginData = LoginData {
     deriving (Eq, Show, Read, Generic)
 
 instance ToJSON LoginData
--- instance HasFormUrlEncoded LoginData?
+instance ToFormUrlEncoded LoginData where
+  toFormUrlEncoded LoginData{..} =
+    formatEncoded:
+    [ ("username", username)
+    , ("password", password)
+    ]
+    ++ catMaybes
+    [ optional (\b -> if b then "true" else "false")
+      ("disableautosave", disableautosave)
+    ]
 
 -- | user login, with password
 data LogoutData = LogoutData {
-      format   :: Format -- "json"
---    , usercookie :: Maybe Text -- unused
+      format   :: Format       -- "json"
+    , usercookie :: Maybe Text -- not used
     }
     deriving (Eq, Show, Read, Generic)
 
 instance ToJSON LogoutData
+instance ToFormUrlEncoded LogoutData where
+  toFormUrlEncoded LogoutData{..} =
+    formatEncoded:
+    catMaybes (map optionalText
+               [ ("usercookie", usercookie)
+               ])
+
+-- helpers
+
+-- | include optional fields if present, in ToFormUrlEncoded. Field content is
+-- transformed to text
+optional :: (value -> Text) -> (Text, Maybe value) -> Maybe (Text, Text)
+optional convert (name, Nothing) = Nothing
+optional convert (name, Just v)  = Just (name, convert v)
+-- TODO could use a type class for value -> Text
+
+-- | optional text fields (passed through directly if present)
+optionalText = optional id
