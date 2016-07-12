@@ -17,6 +17,7 @@ cabal-version:       >=1.24
 
 library
   exposed-modules:     DeployR
+                       DeployR.API
                        DeployR.Types
   -- other-modules:       
   -- other-extensions:    
