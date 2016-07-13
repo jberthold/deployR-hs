@@ -15,6 +15,9 @@ import GHC.Generics
 
 import Data.Text(Text)
 import qualified Data.Text as T
+import Data.Map(Map)
+import qualified Data.Map as Map
+
 import Data.List(isPrefixOf)
 import Data.Maybe(catMaybes, maybeToList)
 
@@ -180,8 +183,8 @@ instance FromJSONPayload ExecResult where
   parseJSONPayload r = do
       interrupted <- r .: "interrupted"
       project     <- r .: "project" >>= parseJSON
-      objects     <- r .: "workspace" >>= (.: "objects") >>= parseJSON
       execution   <- r .: "execution" >>= parseJSON
+      objects     <- r .: "workspace" >>= (.: "objects") >>= parseJSON
       return ExecResult{..}
 
 data DRProject = DRProject {
@@ -204,6 +207,8 @@ data RObject = RInt  Int -- ^ R integer type
              | RVectorS [Text]   -- ^Vector of R characters
                -- TODO switch to Vector
                -- clumsy... but now we can derive
+             | RDataframe (Map Text RObject) -- ^ Data frame, values are
+                                             -- vectors in named columns
     deriving (Read, Generic)
 
 instance Show RObject where
@@ -213,6 +218,8 @@ instance Show RObject where
     show (RVectorD as) = show as
     show (RVectorI as) = show as
     show (RVectorS as) = show as
+    -- show (RDataframe m) = unlines ("Data frame:\n" : concat columns)
+    --   where columns = concatMap (\(name, vector) -> [T.unpack name, show M.assocs  m
 
 instance Eq RObject where
     (RInt i1)    == (RInt i2)    = i1 == i2
@@ -230,7 +237,11 @@ instance Eq RObject where
     -- Read) would fix this, but how far do we want to take auto-casts?
     --   Alternative: intensional equality, all else unequal.
 
-instance FromJSON RObject
+-- | This translates 
+-- The encoding of R objects in deployR is described in
+-- https://deployr.revolutionanalytics.com/documents/dev/api-doc/guide/encodings.html
+instance FromJSON RObject -- where
+--  parseJSON (Object o) = do error "implement me"
     -- will need more work to make it really work. Must distinguish
     -- types from information in the R object.
 

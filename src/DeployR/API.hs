@@ -22,7 +22,7 @@ import DeployR.Types -- Data types for the API
 
 -- | overall API. Everything starts by "r"
 type DeployRAPI =
-  "r" :>
+  "r" :> "deployr" :>
   (      DeployRUserAPI
     :<|> DeployRProjectAPI
     :<|> DeployRRepoAPI
