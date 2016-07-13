@@ -1,0 +1,111 @@
+{
+  "deployr": {
+    "response": {
+      "success": true,
+      "call": "/r/repository/script/execute",
+      "httpcookie": "F797A130FD305581823D4251D7DC38CA",
+      "interrupted": false,
+      "workspace": {
+        "objects": [
+          {
+            "type": "dataframe",
+            "rclass": "data.frame",
+            "value": [
+              {
+                "type": "vector",
+                "rclass": "character",
+                "value": [
+                  "RA-IP-114839",
+                  "RA-IP-114839",
+                  "RA-IP-114839",
+                  "RA-IP-114839",
+                  "RA-IP-114839",
+                  "RA-IP-114839",
+                  "RA-IP-114839"
+                ],
+                "name": "CaseNumber"
+              },
+              {
+                "type": "vector",
+                "rclass": "numeric",
+                "value": [
+                  3,
+                  3,
+                  62,
+                  87,
+                  267,
+                  3249,
+                  0
+                ],
+                "name": "ScoreValue"
+              },
+              {
+                "type": "vector",
+                "rclass": "character",
+                "value": [
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5",
+                  "6",
+                  "7"
+                ],
+                "name": "ScoreDefinitionID"
+              },
+              {
+                "type": "vector",
+                "rclass": "character",
+                "value": [
+                  "Predicted duration at 25th percentile to 75th percentile is more than 23 months",
+                  "Fractures Condition (Low Risk);Overseas Claimant;Essential Cover;Medical Occupation (For Non-Hesta Claim)",
+                  "",
+                  "",
+                  "",
+                  "",
+                  ""
+                ],
+                "name": "ScoreDescription"
+              }
+            ],
+            "name": "Real.Time.Response"
+          }
+        ]
+      },
+      "project": {
+        "project": "STATELESS-0e72ee06-0c48-4092-a491-fa0a8ab8ee58",
+        "name": "Project: Autosaved",
+        "descr": "Autosaved by DeployR.",
+        "shared": false,
+        "longdescr": null,
+        "origin": "Project original.",
+        "author": "STATELESS",
+        "authors": [
+          "STATELESS"
+        ],
+        "cookie": null,
+        "lastmodified": 1467599309267,
+        "live": true
+      },
+      "repository": {
+        "files": []
+      },
+      "execution": {
+        "console": "",
+        "code": "",
+        "interrupted": false,
+        "results": [],
+        "artifacts": [],
+        "warnings": [],
+        "execution": "EXEC-3fd74e5e-bce1-4f93-bcee-c1f7c2b4339e",
+        "timeStart": 1467599299501,
+        "timeCode": 9657,
+        "timeTotal": 9702,
+        "tag": null,
+        "actor": "anonymous",
+        "resultsGenerated": 0,
+        "resultsAvailable": 0
+      }
+    }
+  }
+}

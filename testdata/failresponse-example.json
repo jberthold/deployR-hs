@@ -1,0 +1,12 @@
+{
+    "deployr": {
+        "response": {
+            "call": "/r/user/login",
+            "success": false,
+            "error": "Bad credentials",
+            "errorCode": 900,
+            "httpcookie": "2606B516198D7B2F62B43ADBA15F29C2"
+        }
+    }
+}
+
