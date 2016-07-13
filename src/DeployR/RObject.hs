@@ -16,7 +16,7 @@ import qualified Data.Text as T
 import Data.Map(Map)
 import qualified Data.Map as M
 
-import Data.List(isPrefixOf)
+import Data.List
 import Data.Maybe
 
 import Servant.API -- for instances
@@ -71,6 +71,9 @@ instance FromJSON RClass where
 ---------------------------------------------------------------------
 -- | Objects retrieved from R. We keep this simple for now, but it
 -- probably needs review or restrictions to become fully useful.
+-- Objects in the deployR representation also carry their name, but
+-- that would not be too practical to work with (what about name collisions
+-- in a list, and how about comparing objects with different name?)
 data RObject = RInt  Int -- ^ R integer type
              | RDouble Double -- ^ R double type
              | RString Text   -- ^ R character type (also factor)
@@ -94,10 +97,13 @@ instance Show RObject where
     show (RVectorI as) = show as
     show (RVectorS as) = show as
     show (RVectorB as) = show as
-    show (RDataframe m) = unlines ("Data frame:\n" : concat (columns m))
-    show (RList m)      = unlines ("list:\n" : concat (columns m))
+    show (RDataframe m) = showColumns "Data frame" m
+    show (RList m)      = showColumns "list" m
 
-columns = map (\(name, vector) -> [T.unpack name, show vector]) . M.assocs
+showColumns prefix m = concat $ [ prefix, "{ "]
+                                ++ intersperse "," cols 
+                                ++ [" }"]
+    where cols = map (\(n, v) -> T.unpack n ++ ": " ++ show v) $ M.assocs m
 
 -- instance Eq RObject where
 --     (RInt i1)    == (RInt i2)    = i1 == i2
@@ -131,14 +137,18 @@ instance FromJSON RObject
           (RTVector , RNm) -> RVectorD <$> o .: "value"
           (RTVector , RCh) -> RVectorS <$> o .: "value"
           (RTVector , RLg) -> RVectorB <$> o .: "value"
-          (RTDF     , RDF) -> RDataframe <$> (o .: "value" >>= getComponents)
-          (RTList   , RLs) -> RList <$>  (o .: "value" >>= getComponents)
+          (RTDF     , RDF) -> RDataframe <$> (o .: "value" >>= parseObjects)
+          (RTList   , RLs) -> RList <$>  (o .: "value" >>= parseObjects)
           other       -> error $ show other ++ ": implement me"
-        where getComponents :: [Object] -> Parser (Map Text RObject)
-              getComponents objs = do cols  <- mapM (parseJSON . Object) objs
-                                      names <- mapM (.:"name") objs
-                                      return $ M.fromList $ zip cols names
 
+-- | interface function: generate a map of named RObjects from a list
+-- of JSON Objects. Recursively used in data frame and list code
+parseObjects :: [Value] -> Parser (Map Text RObject)
+parseObjects objs = do cols  <- mapM parseJSON objs
+                       names <- mapM (withObject "R object" (.:"name")) objs
+                       return $ M.fromList $ zip names cols
+
+------------------------------------------------------------
 -- | translate RObjects to Haskell (casting values when OK).
 -- All types that can be returned from R have conversions.
 class RType a where

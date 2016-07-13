@@ -34,7 +34,7 @@ import DeployR.RObject
 data DRResponse a =
   DRSuccess { -- if success is "true", read result payload and cookie
       drCall    :: Text
-    , drCookie  :: Text
+    , drCookie  :: Maybe Text
     , drExtra   :: a -- Extra data, often more than one thing
       -- This extra field will probably end up ugly for *JSON instances.
       -- The other option is to repeat all fields over and over...
@@ -42,7 +42,7 @@ data DRResponse a =
   | DRError {  -- if success is "false": error, retrieve message and code
       drError   :: Text
     , drErrCode :: Int
-    , drCookie  :: Text
+    , drCookie  :: Maybe Text
     }
   deriving (Eq, Show, Read, Generic)
 
@@ -73,11 +73,11 @@ instance (FromJSONPayload a) => FromJSON (DRResponse a) where
       where parseResponse re = do
               ok    <- re .: "success"
               if ok then DRSuccess <$> re .: "call"
-                                   <*> re .: "httpcookie"
+                                   <*> re .:? "httpcookie"
                                    <*> parseJSONPayload re
                 else DRError <$> re .: "error"
                              <*> re .: "errorCode"
-                             <*> re .: "httpcookie"
+                             <*> re .:? "httpcookie"
 
 -- | a special type class for the payload in a DeployR response.  If this
 -- was simply using FromJSON, one would need to create bogus parsers that
@@ -174,7 +174,7 @@ instance FromJSONPayload [ProjectFile] where
 data ExecResult = ExecResult {
       interrupted :: Bool
     , project     :: DRProject
-    , objects     :: [RObject]
+    , objects     :: Map Text RObject
     , execution   :: DRExecution
       -- , files :: [RepoFile]
     }
@@ -186,12 +186,12 @@ instance FromJSONPayload ExecResult where
       interrupted <- r .: "interrupted"
       project     <- r .: "project" >>= parseJSON
       execution   <- r .: "execution" >>= parseJSON
-      objects     <- r .: "workspace" >>= (.: "objects") >>= parseJSON
+      objects     <- r .: "workspace" >>= (.: "objects") >>= parseObjects
       return ExecResult{..}
 
 data DRProject = DRProject {
       project :: Text
-    , name    :: Text
+    , name    :: Maybe Text
     , descr   :: Maybe Text
       -- , a few more... 
     }
