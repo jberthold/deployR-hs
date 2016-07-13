@@ -1,0 +1,277 @@
+    "deployr": {
+        "response": {
+            "success": true,
+            "workspace": {
+	      "objects" : [
+
+		//
+		//  DeployR Primitive Encodings 
+		//
+
+                {
+                    "name": "x_character",
+                    "type": "primitive",
+                    "rclass": "character",
+                    "value": "c"
+                },
+
+                {
+                    "name": "x_integer",
+                    "type": "primitive",
+                    "rclass": "integer",
+                    "value": 10
+                },
+
+                {
+                    "name": "x_numeric",
+                    "type": "primitive",
+                    "rclass": "numeric",
+                    "value": 5
+                },
+
+                {
+                    "name": "x_logical",
+                    "type": "primitive",
+                    "rclass": "logical",
+                    "value": true
+                },
+
+
+		//
+		//  DeployR Date Encodings 
+		//
+
+                {
+                    "name": "x_date",
+                    "type": "date",
+                    "rclass": "date",
+                    "value": "2011-10-04",
+                    "format": "yyyy-MM-dd"
+                },
+
+                {
+                    "name": "x_posixct",
+                    "type": "date",
+                    "rclass": "POSIXct",
+                    "value": "2011-10-05",
+                    "format": "yyyy-MM-dd HH:mm:ss Z"
+                },
+
+
+		//
+		//  DeployR Vector Encodings 
+		//
+
+                {
+                    "name": "x_character_vector",
+                    "type": "vector",
+                    "rclass": "character",
+                    "value": [
+                        "a",
+                        "b",
+                        "c"
+                    ]
+                },
+
+                {
+                    "name": "x_integer_vector",
+                    "type": "vector",
+                    "rclass": "integer",
+                    "value": [
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15
+                    ]
+                },
+
+                {
+                    "name": "x_numeric_vector",
+                    "type": "vector",
+                    "rclass": "numeric",
+                    "value": [
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15
+                    ]
+                },
+
+
+		//
+		//  DeployR Matrix Encodings 
+		//
+
+                {
+                    "name": "x_matrix",
+                    "type": "matrix",
+                    "rclass": "matrix",
+                    "value": [
+                        [
+                            1,
+                            3,
+                            12
+                        ],
+                        [
+                            2,
+                            11,
+                            13
+                        ]
+                    ]
+                },
+
+
+		//
+		//  DeployR Factor Encodings 
+		//
+
+                {
+                    "name": "x_ordered_factor",
+                    "type": "factor",
+                    "rclass": "ordered",
+                    "value": [
+                        "s",
+                        "t",
+                        "a",
+                        "t",
+                        "i",
+                        "s",
+                        "t",
+                        "i",
+                        "c",
+                        "s"
+                    ],
+                    "labels": [
+                        "s",
+                        "t",
+                        "a",
+                        "c",
+                        "i"
+                    ],
+                    "ordered": true
+                },
+
+                {
+                    "name": "x_unordered_factor",
+                    "type": "factor",
+                    "rclass": "factor",
+                    "value": [
+                        "s",
+                        "t",
+                        "a",
+                        "t",
+                        "i",
+                        "s",
+                        "t",
+                        "i",
+                        "c",
+                        "s"
+                    ],
+                    "labels": [
+                        "s",
+                        "t",
+                        "a",
+                        "c",
+                        "i"
+                    ],
+                    "ordered": false
+                },
+
+
+		//
+		//  DeployR List Encodings 
+		//
+
+                {
+                    "name": "x_list",
+                    "type": "list",
+                    "rclass": "list",
+                    "value": [
+                        {   "name" : "1",
+                            "value": [
+                                10,
+                                11,
+                                12,
+                                13,
+                                14,
+                                15
+                            ],
+                            "type": "vector",
+                            "rclass": "numeric"
+                        },
+                        {   "name" : "2",
+                            "value": [
+                                40,
+                                41,
+                                42,
+                                43,
+                                44,
+                                45
+                            ],
+                            "type": "vector",
+                            "rclass": "numeric"
+                        }
+                    ]
+                },
+
+
+		//
+		//  DeployR Dataframe Encodings 
+		//
+
+                {
+                    "name": "x_dataframe",
+                    "type": "dataframe",
+                    "rclass": "data.frame",
+                    "value": [
+                        {
+                            "type": "vector",
+                            "name": "c.10.15.",
+                            "rclass": "numeric",
+                            "value": [
+                                10,
+                                11,
+                                12,
+                                13,
+                                14,
+                                15
+                            ]
+                        },
+                        {
+                            "type": "vector",
+                            "name": "c.40.45.",
+                            "rclass": "numeric",
+                            "value": [
+                                40,
+                                41,
+                                42,
+                                43,
+                                44,
+                                45
+                            ]
+                        }
+                    ]
+                }
+
+              ]
+	    },
+            "call": "/r/project/workspace/get",
+            "project": {
+                "project": "PROJECT-00c512b6-84a4-45ff-b94a-134cca8e0584",
+                "descr": null,
+                "owner": "testuser",
+                "live": true,
+                "origin": "Project original.",
+                "name": null,
+                "projectcookie": null,
+                "longdescr": null,
+                "ispublic": false,
+                "lastmodified": "Wed, 5 Oct 2011 06:31:37 +0000"
+            }
+        }
+    }
+}

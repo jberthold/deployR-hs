@@ -19,8 +19,11 @@ library
   exposed-modules:     DeployR
                        DeployR.API
                        DeployR.Types
-  -- other-modules:       
+
+  other-modules:       DeployR.RObject
+
   -- other-extensions:    
+
   build-depends:       base >=4.7 && < 5,
                        servant >= 0.7,
                        servant-client >= 0.7,
