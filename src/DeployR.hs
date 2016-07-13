@@ -21,3 +21,13 @@ import Network.HTTP.Client (Manager, newManager, defaultManagerSettings)
 import Servant.API
 import Servant.Client
 
+-- Client requests run in the ClientM monad (once supplied with their payload,
+-- a Manager and a BaseUrl).
+logMeIn :: Manager -> BaseUrl -> ClientM (DRResponse DRUser)
+logMeIn = login itsMe
+
+itsMe :: LoginData
+itsMe = LoginData FormatJSON "admin" "secret" Nothing
+
+-- we would like an "inSession" combinator to run a ClientM with an
+-- authentication header on each action (the httpcookie)

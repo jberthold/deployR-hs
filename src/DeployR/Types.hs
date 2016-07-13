@@ -6,6 +6,8 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleInstances #-}
 
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module DeployR.Types where
 
 import Data.Aeson.Types
@@ -24,32 +26,53 @@ import Servant.API -- for instances
 -- | generic response type for DeployR.
 -- The responses are largely the same, but may contain additional
 -- fields in particular cases. Modelled by a type argument.
-data DRResponse a = DRResponse {
-      drSuccess :: Bool
-    , drCall    :: Text
+data DRResponse a =
+  DRSuccess { -- if success is "true", read result payload and cookie
+      drCall    :: Text
     , drCookie  :: Text
     , drExtra   :: a -- Extra data, often more than one thing
       -- This extra field will probably end up ugly for *JSON instances.
       -- The other option is to repeat all fields over and over...
     }
-    deriving (Eq, Show, Read, Generic)
+  | DRError {  -- if success is "false": error, retrieve message and code
+      drError   :: Text
+    , drErrCode :: Int
+    , drCookie  :: Text
+    }
+  deriving (Eq, Show, Read, Generic)
 
+-- | helper to dive into object hierarchies
+-- I thought withObject would do this (one level), but found out it does not.
+-- The Value is verified to be an Object, then the named fields from
+-- it are selected in order, all expected to be nested object. The extractA
+-- function is applied to the innermost object to yield the desired result a.
+inPath :: [Text] -> (Object -> Parser a) -> Value -> Parser a
+inPath fs extractA = withObject ("path " ++ T.unpack (T.intercalate "." fs))
+                                (foldr descend extractA fs)
+  where descend :: Text -> (Object -> Parser a) -> Object -> Parser a
+        descend n f o = o .: n >>= withObject (T.unpack $ T.unwords ["object",n]) f
+        -- meaning: "parse an object called n inside o, then do f with it"
+{-
+with an Object -> Parser a function:
+
+   (Object -> Parser a) -> Text -> (Object -> Parser a)
+   \ extractO              name ->
+         withObject (printf "object with %s" name)
+                    (\o -> o .: name >>= extract)
+
+-}
+
+-- | The JSON parser for DRResponse a uses a parseJSONPayload parser for a.
 instance (FromJSONPayload a) => FromJSON (DRResponse a) where
-  parseJSON (Object o) = do
-    de' <- o  .: "deployr" -- :: Parser Value, inferred
-    de  <- case de' of
-            Object de -> return de
-            other     -> typeMismatch "deployr object" other
-    re  <- de .: "response" :: Parser Value
-    withObject "response" getResponse re
-      where -- getResponse :: Object -> DRResponse a
-            getResponse re = DRResponse
-                             <$> re .: "success"
-                             <*> re .: "call"
+  parseJSON = inPath ["deployr", "response"] parseResponse
+      where parseResponse re = do
+              ok    <- re .: "success"
+              if ok then DRSuccess <$> re .: "call"
+                                   <*> re .: "httpcookie"
+                                   <*> parseJSONPayload re
+                else DRError <$> re .: "error"
+                             <*> re .: "errorCode"
                              <*> re .: "httpcookie"
-                             <*> parseJSONPayload re
-  parseJSON wat = typeMismatch "DeployR response object" wat
-
 
 -- | a special type class for the payload in a DeployR response.  If this
 -- was simply using FromJSON, one would need to create bogus parsers that
