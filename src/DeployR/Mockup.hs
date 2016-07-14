@@ -46,17 +46,48 @@ mockserver = serve (Proxy :: Proxy DeployRAPI) mock
 mock :: Server DeployRAPI
 mock =
   -- user API
-  (failWithLog1 "login" :<|> failWithLog1 "logout")
+  (failWithLog1 "login" :<|> failCookie1 "logout")
     -- project API
-  :<|> ((failWithLog1 "exec.code" :<|> failWithLog1 "exec.script" :<|> failWithLog0 "exec.flush" ) -- exec
-        :<|> (failWithLog0 "pdir.list" :<|> failWithLog0 "pdir.upload") -- pdir
-        :<|> failWithLog0 "wspace.list"
+  :<|> ((failCookie1 "exec.code" :<|> failCookie1 "exec.script" :<|> failCookie0 "exec.flush" ) -- exec
+        :<|> (failCookie0 "pdir.list" :<|> failCookie0 "pdir.upload") -- pdir
+        :<|> failCookie0 "wspace.list"
        ) -- wspace
-  :<|> ((failWithLog0 "repo.dir.list" :<|> failWithLog0 "repo.dir.create") -- rdir
-        :<|> (failWithLog0 "repo.file.list" :<|> failWithLog0 "repo.file.upload") -- rfile
-        :<|> (failWithLog0 "repo.script.list" :<|> failWithLog0 "repo.script.exec") -- rscript
+  :<|> ((failCookie0 "repo.dir.list" :<|> failCookie0 "repo.dir.create") -- rdir
+        :<|> (failCookie0 "repo.file.list" :<|> failCookie0 "repo.file.upload") -- rfile
+        :<|> (failCookie0 "repo.script.list" :<|> failCookie0 "repo.script.exec") -- rscript
        )
 
+-- dummy request handlers
+failWithLog0 :: Text -> Handler (DRResponse b)
+failWithLog0 req = do liftIO (T.putStr msg)
+                      return failed
+  where failed = DRError { drCookie  = Nothing
+                         , drErrCode = 666
+                         , drError   =  msg }
+        msg    = T.intercalate "\t" [ "MOCK SERVER:\tRequest"
+                                    , req, "(no body)" ]
+
+-- fail handler which accepts and sets a cookie header
+failCookie0 :: Text -> Maybe Text -> Handler (DRResponse b)
+failCookie0 req cookie = failWithLog0 req >>= \resp ->
+                         return $ resp{ drCookie = cookie }
+
+-- universal log/fail handler
+failWithLog1 :: (Show a) => Text -> a -> Handler (DRResponse b)
+failWithLog1 req arg1 = do liftIO (T.putStrLn msg)
+                           return failed
+  where failed = DRError { drCookie  = Nothing
+                         , drErrCode = 666
+                         , drError   = msg }
+        msg    = T.intercalate "\t" [ "MOCK SERVER:\tRequest"
+                                    , req, T.pack $ show arg1 ]
+
+-- fail handler which accepts and sets a cookie header, with 1 argument
+failCookie1 :: (Show a) => Text -> a -> Maybe Text -> Handler (DRResponse b)
+failCookie1 req x cookie = failWithLog1 req x >>= \resp ->
+                           return $ resp{ drCookie = cookie }
+
+------------------------------------------------------------
 -- needs some ToJSON instances which we do not use
 -- (ATTENTION, these instances do not work properly!)
 instance ToJSON (DRResponse a) where
@@ -75,7 +106,6 @@ instance ToJSON (DRResponse a) where
                                        , drError   = "Returning a success, why?" }
 (.=?) field  = fmap (\mx -> field .= mx)
  
-
 instance ToJSON RepoFile
 instance ToJSON DRUser
 instance ToJSON DRPermissions
@@ -140,29 +170,3 @@ instance FromFormUrlEncoded ExecScript where
         artifactsoff = fmap (=="true") $ lookup "artifactsoff" pairs
         robjects  = fmap (T.splitOn ",") $ lookup "robjects" pairs
     return ExecScript{..}
-
-
--- dummy request handlers
-failWithLog0 :: Text -> Handler (DRResponse b)
-failWithLog0 req = do liftIO (T.putStr msg)
-                      return failed
-  where failed = DRError { drCookie  = Nothing
-                         , drErrCode = 666
-                         , drError   =  msg }
-        msg    = T.intercalate "\t" [ "MOCK SERVER:\tRequest"
-                                    , req, "(no body)" ]
-
--- universal log/fail handler
-failWithLog1 :: (Show a) => Text -> a -> Handler (DRResponse b)
-failWithLog1 req arg1 = do liftIO (T.putStrLn msg)
-                           return failed
-  where failed = DRError { drCookie  = Nothing
-                         , drErrCode = 666
-                         , drError   = msg }
-        msg    = T.intercalate "\t" [ "MOCK SERVER:\tRequest"
-                                    , req, T.pack $ show arg1 ]
-
--- fail handler which accepts and sets a cookie header
-failCookie :: (Show a) => Text -> Maybe Text -> a -> Handler (DRResponse b)
-failCookie req cookie x = failWithLog1 req x >>= \resp ->
-                          return $ resp{ drCookie = cookie }

@@ -39,7 +39,8 @@ type DeployRUserAPI =
     (      "login" :> ReqBody '[FormUrlEncoded] LoginData
                    :> Post '[JSON] (DRResponse DRUser)
       :<|> "logout" :> ReqBody '[FormUrlEncoded] LogoutData
-                    :> Post '[JSON] (DRResponse ())
+                   :> Header "application:JSESSIONID" Text
+                   :> Post '[JSON] (DRResponse ())
     )
 
 -- pattern-matching out the client functions, following the type structure
@@ -62,11 +63,14 @@ execAPI :<|> pDirAPI :<|> wspaceAPI = projectAPI
 type DeployRExecAPI =
     "execute" :>
     ( "code" :> ReqBody '[FormUrlEncoded] ExecCode
+             :> Header "application:JSESSIONID" Text
              :> Post '[JSON] (DRResponse ExecResult)
       :<|> "script" :> ReqBody '[FormUrlEncoded] ExecScript
+              :> Header "application:JSESSIONID" Text
               :> Post '[JSON] (DRResponse ExecResult)
       :<|> "flush" -- :> ReqBody missing
-              :> Post '[JSON] (DRResponse ()) -- TODO wrong response type
+             :> Header "application:JSESSIONID" Text
+             :> Post '[JSON] (DRResponse ()) -- TODO wrong response type
       -- and a few more, concerned with exec. history, not too relevant for us
     )
               -- something is strange above, confuses Emacs haskell-mode...
@@ -78,8 +82,10 @@ execCode :<|> execScript :<|> execFlush = execAPI
 type DeployRPDirAPI =
     "directory" :>
     (      "list" -- :> Capture something missing
+             :> Header "application:JSESSIONID" Text
              :> Get '[JSON] (DRResponse [ProjectFile])
       :<|> "upload" -- :> ReqBody something missing
+             :> Header "application:JSESSIONID" Text
              :> Post '[JSON] (DRResponse ProjectFile)
       -- and a lot more...
     )
@@ -91,6 +97,7 @@ pDirList :<|> pDirUpload -- :<|> and more
 type DeployRWorkspaceAPI =
     "workspace" :>
     (       "list" -- :> Capture something missing
+              :> Header "application:JSESSIONID" Text
               :> Get '[JSON] (DRResponse ()) -- TODO wrong response type
      -- and a lot more...
     )
@@ -115,9 +122,11 @@ rDirAPI :<|> rFileAPI  :<|> rScriptAPI -- :<|> and more
 type DeployRDirAPI = 
     "directory" :>
     (      "list" -- :> Capture something missing
+              :> Header "application:JSESSIONID" Text
               :> Get '[JSON] (DRResponse ()) -- TODO wrong return type
       :<|> "create" -- :> ReqBody something missing
-              :> Post '[JSON] (DRResponse ()) -- TODO wrong return type
+             :> Header "application:JSESSIONID" Text
+             :> Post '[JSON] (DRResponse ()) -- TODO wrong return type
       -- and a lot more...
     )
 -- client functions
@@ -128,8 +137,10 @@ rDirList :<|> rDirCreate -- :<|> and more
 type DeployRFileAPI = 
     "file" :>
     (      "list" -- :> Capture something missing -}
+              :> Header "application:JSESSIONID" Text
               :> Get '[JSON] (DRResponse [RepoFile])
       :<|> "upload" {- :> ReqBody something missing -}
+              :> Header "application:JSESSIONID" Text
               :> Post '[JSON] (DRResponse RepoFile)
       -- and a lot more...
     )
@@ -143,8 +154,10 @@ rFileList :<|> rFileUpload -- :<|> and more
 type DeployRScriptAPI =
     "script" :>
     (      "list" {- :> QueryParam missing -}
+              :> Header "application:JSESSIONID" Text
               :> Get '[JSON] (DRResponse [RepoScript])
       :<|> "execute" {- :> ReqBody missing -}
+              :> Header "application:JSESSIONID" Text
               :> Post '[JSON] (DRResponse ())
       -- and two more ...
     )
