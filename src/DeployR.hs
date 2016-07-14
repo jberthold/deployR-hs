@@ -23,11 +23,29 @@ import Servant.Client
 
 -- Client requests run in the ClientM monad (once supplied with their payload,
 -- a Manager and a BaseUrl).
-logMeIn :: Manager -> BaseUrl -> ClientM (DRResponse DRUser)
-logMeIn = login itsMe
+-- simple http URl with flexible host, port 8000
+getBaseUrl :: IO BaseUrl
+getBaseUrl = do putStr "Enter DeployR host name: "
+                baseUrlHost <- getLine
+                return BaseUrl{..}
+  where baseUrlPort   = 8000
+        baseUrlScheme = Http
+        baseUrlPath   = ""
+
+getMgr :: IO Manager
+getMgr = newManager defaultManagerSettings
+
 
 itsMe :: LoginData
 itsMe = LoginData FormatJSON "admin" "secret" Nothing
+
+
+loginTest :: IO ()
+loginTest = do
+  mgr  <- getMgr
+  base <- getBaseUrl
+  result <- runExceptT (login itsMe mgr base)
+  print result
 
 -- we would like an "inSession" combinator to run a ClientM with an
 -- authentication header on each action (the httpcookie)

@@ -22,7 +22,7 @@ import DeployR.Types -- Data types for the API
 
 -- | overall API. Everything starts by "r"
 type DeployRAPI =
-  "r" :> "deployr" :>
+  "deployr" :> "r" :>
   (      DeployRUserAPI
     :<|> DeployRProjectAPI
     :<|> DeployRRepoAPI
@@ -143,7 +143,7 @@ rFileList :<|> rFileUpload -- :<|> and more
 type DeployRScriptAPI =
     "script" :>
     (      "list" {- :> QueryParam missing -}
-              :> Get '[JSON] [RepoScript]
+              :> Get '[JSON] (DRResponse [RepoScript])
       :<|> "execute" {- :> ReqBody missing -}
               :> Post '[JSON] (DRResponse ())
       -- and two more ...

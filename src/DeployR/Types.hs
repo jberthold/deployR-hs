@@ -142,7 +142,7 @@ instance FromJSONPayload [RepoFile] where
 
 -- | "script" alias for repository files, to parse payload in responses
 newtype RepoScript = Script RepoFile
-                  -- deriving (Eq, Show, Read, Generic)
+                   deriving (Eq, Show, Read, Generic)
 
 instance FromJSON RepoScript where
   parseJSON o = Script <$> parseJSON o
