@@ -68,7 +68,7 @@ type DeployRExecAPI =
       :<|> "script" :> ReqBody '[FormUrlEncoded] ExecScript
               :> Header "application:JSESSIONID" Text
               :> Post '[JSON] (DRResponse ExecResult)
-      :<|> "flush" -- :> ReqBody missing
+      :<|> "flush" :> ReqBody '[FormUrlEncoded] RqProject
              :> Header "application:JSESSIONID" Text
              :> Post '[JSON] (DRResponse ()) -- TODO wrong response type
       -- and a few more, concerned with exec. history, not too relevant for us
@@ -81,7 +81,8 @@ execCode :<|> execScript :<|> execFlush = execAPI
 -- | Directory of a project
 type DeployRPDirAPI =
     "directory" :>
-    (      "list" -- :> Capture something missing
+    (      "list" :> QueryParam "format" Format -- not really needed
+                  -- :> QueryParam "project" Text
              :> Header "application:JSESSIONID" Text
              :> Get '[JSON] (DRResponse [ProjectFile])
       :<|> "upload" -- :> ReqBody something missing

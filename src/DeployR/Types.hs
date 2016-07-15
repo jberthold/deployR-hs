@@ -240,7 +240,10 @@ instance Read Format where readsPrec _ input
                                | "json" `isPrefixOf` input
                                    = [(FormatJSON, drop 4 input)]
                                | otherwise = []
-instance ToJSON Format where
+instance ToJSON Format
+instance ToHttpApiData Format
+    where toUrlPiece   = T.pack . show
+          toQueryParam = toUrlPiece
 
 -- | even simpler: include this in every POST and request
 formatEncoded :: (Text, Text)
@@ -351,3 +354,18 @@ instance ToFormUrlEncoded ExecScript where
                                    ]
     , maybeToList (optional (T.intercalate ",") ("robjects", robjects))
     ]
+
+-- | specifying a project, for execute/flush, workspace/list,
+-- directory/list in project API).
+-- We only support flushing the entire execution history
+data RqProject = RqProject {
+      format :: Format
+    , project :: Text
+    }
+    deriving (Eq, Show, Read, Generic)
+
+instance ToJSON RqProject
+instance ToFormUrlEncoded RqProject where
+  toFormUrlEncoded RqProject{..} =
+    [ formatEncoded, ("project", project) ]
+-- could hack in some extra fields as free form fields here

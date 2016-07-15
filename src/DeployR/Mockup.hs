@@ -48,8 +48,8 @@ mock =
   -- user API
   (failWithLog1 "login" :<|> failCookie1 "logout")
     -- project API
-  :<|> ((failCookie1 "exec.code" :<|> failCookie1 "exec.script" :<|> failCookie0 "exec.flush" ) -- exec
-        :<|> (failCookie0 "pdir.list" :<|> failCookie0 "pdir.upload") -- pdir
+  :<|> ((failCookie1 "exec.code" :<|> failCookie1 "exec.script" :<|> failCookie1 "exec.flush" ) -- exec
+        :<|> (failCookie2 "pdir.list" :<|> failCookie0 "pdir.upload") -- pdir
         :<|> failCookie0 "wspace.list"
        ) -- wspace
   :<|> ((failCookie0 "repo.dir.list" :<|> failCookie0 "repo.dir.create") -- rdir
@@ -87,6 +87,24 @@ failCookie1 :: (Show a) => Text -> a -> Maybe Text -> Handler (DRResponse b)
 failCookie1 req x cookie = failWithLog1 req x >>= \resp ->
                            return $ resp{ drCookie = cookie }
 
+-- universal log/fail handler
+failWithLog2 :: (Show a, Show b) => Text -> a -> b -> Handler (DRResponse c)
+failWithLog2 req a b = do liftIO (T.putStrLn msg)
+                          return failed
+  where failed = DRError { drCookie  = Nothing
+                         , drErrCode = 666
+                         , drError   = msg }
+        msg    = T.intercalate "\t" [ "MOCK SERVER:\tRequest"
+                                    , req
+                                    , T.pack $ show a
+                                    , T.pack $ show b ]
+
+-- fail handler which accepts and sets a cookie header, with 1 argument
+failCookie2 :: (Show a, Show b) => 
+               Text -> a -> b -> Maybe Text -> Handler (DRResponse b)
+failCookie2 req x y cookie = failWithLog2 req x y >>= \resp ->
+                             return $ resp{ drCookie = cookie }
+
 ------------------------------------------------------------
 -- needs some ToJSON instances which we do not use
 -- (ATTENTION, these instances do not work properly!)
@@ -116,6 +134,9 @@ instance ToJSON DRExecution
 instance ToJSON ProjectFile
 instance ToJSON RepoScript
 
+instance FromHttpApiData Format
+    where parseUrlPiece   = read . T.unpack
+          parseQueryParam = fromUrlPiece
 
 ------------------------------------------------------------
 -- FromFormUrlEncoded instances.
