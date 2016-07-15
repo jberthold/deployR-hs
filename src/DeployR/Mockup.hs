@@ -42,19 +42,19 @@ main = do args <- getArgs
 mockserver :: Application
 mockserver = serve (Proxy :: Proxy DeployRAPI) mock
 
--- the server (lots of writing to do...follows the API structure)
+-- | the server (lots of writing to do...follows the API structure)
+-- I am sure there would be a typeclass approach... (and there is
+-- actually a servant-mock package that does just this).
 mock :: Server DeployRAPI
 mock =
-  -- user API
   (failWithLog1 "login" :<|> failCookie1 "logout")
-    -- project API
-  :<|> ((failCookie1 "exec.code" :<|> failCookie1 "exec.script" :<|> failCookie1 "exec.flush" ) -- exec
-        :<|> (failCookie2 "pdir.list" :<|> failCookie0 "pdir.upload") -- pdir
-        :<|> failCookie0 "wspace.list"
-       ) -- wspace
-  :<|> ((failCookie0 "repo.dir.list" :<|> failCookie0 "repo.dir.create") -- rdir
-        :<|> (failCookie0 "repo.file.list" :<|> failCookie0 "repo.file.upload") -- rfile
-        :<|> (failCookie0 "repo.script.list" :<|> failCookie0 "repo.script.exec") -- rscript
+  :<|> ((failCookie1 "exec.code" :<|> failCookie1 "exec.script" :<|> failCookie1 "exec.flush" )
+        :<|> (failCookie2 "pdir.list" :<|> failCookie0 "pdir.upload")
+        :<|> failCookie2 "wspace.list"
+       )
+  :<|> ((failCookie2 "repo.dir.list" :<|> failCookie0 "repo.dir.create")
+        :<|> (failCookie1 "repo.file.list" :<|> failCookie0 "repo.file.upload")
+        :<|> (failCookie2 "repo.script.list" :<|> failCookie1 "repo.script.exec")
        )
 
 -- dummy request handlers

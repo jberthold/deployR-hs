@@ -173,7 +173,7 @@ instance FromJSONPayload [ProjectFile] where
 -- | Result of executing code (literal or a script)
 data ExecResult = ExecResult {
       interrupted :: Bool
-    , project     :: DRProject
+    , project     :: Maybe DRProject
     , objects     :: Map Text RObject
     , execution   :: DRExecution
       -- , files :: [RepoFile]
@@ -184,7 +184,10 @@ instance FromJSON ExecResult
 instance FromJSONPayload ExecResult where
   parseJSONPayload r = do
       interrupted <- r .: "interrupted"
-      project     <- r .: "project" >>= parseJSON
+      project     <- r .:? "project" >>= \maybeP -> 
+                                    case maybeP of
+                                      Just p  -> fmap Just (parseJSON p)
+                                      Nothing -> return Nothing
       execution   <- r .: "execution" >>= parseJSON
       objects     <- r .: "workspace" >>= (.: "objects") >>= parseObjects
       return ExecResult{..}

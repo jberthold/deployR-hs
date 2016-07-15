@@ -97,9 +97,11 @@ pDirList :<|> pDirUpload -- :<|> and more
 -- | Workspace of projects (R environment)
 type DeployRWorkspaceAPI =
     "workspace" :>
-    (       "list" -- :> Capture something missing
-              :> Header "application:JSESSIONID" Text
-              :> Get '[JSON] (DRResponse ()) -- TODO wrong response type
+    ( "list"
+      :> QueryParam "format" Format
+      :> QueryParam "project" Text
+      :> Header "application:JSESSIONID" Text
+             :> Get '[JSON] (DRResponse ()) -- TODO wrong response type
      -- and a lot more...
     )
 -- client functions
@@ -122,8 +124,10 @@ rDirAPI :<|> rFileAPI  :<|> rScriptAPI -- :<|> and more
 -- | Directories in projects and repository
 type DeployRDirAPI = 
     "directory" :>
-    (      "list" -- :> Capture something missing
-              :> Header "application:JSESSIONID" Text
+    (      "list"
+           :> QueryParam "format" Format
+           :> QueryParam "directory" Text -- optional
+           :> Header "application:JSESSIONID" Text
               :> Get '[JSON] (DRResponse ()) -- TODO wrong return type
       :<|> "create" -- :> ReqBody something missing
              :> Header "application:JSESSIONID" Text
@@ -137,8 +141,11 @@ rDirList :<|> rDirCreate -- :<|> and more
 -- | Files in the repository
 type DeployRFileAPI = 
     "file" :>
-    (      "list" -- :> Capture something missing -}
-              :> Header "application:JSESSIONID" Text
+    (      "list"
+           :> QueryParam "format" Format
+--           :> QueryParam "filename" Text -- optional
+--           :> QueryParam "directory" Text -- optional, with filename
+           :> Header "application:JSESSIONID" Text
               :> Get '[JSON] (DRResponse [RepoFile])
       :<|> "upload" {- :> ReqBody something missing -}
               :> Header "application:JSESSIONID" Text
@@ -155,11 +162,14 @@ rFileList :<|> rFileUpload -- :<|> and more
 type DeployRScriptAPI =
     "script" :>
     (      "list" {- :> QueryParam missing -}
-              :> Header "application:JSESSIONID" Text
+           :> QueryParam "format" Format
+           :> QueryParam "filename" Text -- optional
+           :> Header "application:JSESSIONID" Text
               :> Get '[JSON] (DRResponse [RepoScript])
-      :<|> "execute" {- :> ReqBody missing -}
-              :> Header "application:JSESSIONID" Text
-              :> Post '[JSON] (DRResponse ())
+      :<|> "execute" 
+           :> ReqBody '[FormUrlEncoded] ExecScript -- project ignored!
+           :> Header "application:JSESSIONID" Text
+              :> Post '[JSON] (DRResponse ExecResult)
       -- and two more ...
     )
 -- client functions
