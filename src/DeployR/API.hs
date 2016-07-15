@@ -82,7 +82,7 @@ execCode :<|> execScript :<|> execFlush = execAPI
 type DeployRPDirAPI =
     "directory" :>
     (      "list" :> QueryParam "format" Format -- not really needed
-                  -- :> QueryParam "project" Text
+             :> QueryParam "project" Text
              :> Header "application:JSESSIONID" Text
              :> Get '[JSON] (DRResponse [ProjectFile])
       :<|> "upload" -- :> ReqBody something missing

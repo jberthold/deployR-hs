@@ -101,7 +101,7 @@ failWithLog2 req a b = do liftIO (T.putStrLn msg)
 
 -- fail handler which accepts and sets a cookie header, with 1 argument
 failCookie2 :: (Show a, Show b) => 
-               Text -> a -> b -> Maybe Text -> Handler (DRResponse b)
+               Text -> a -> b -> Maybe Text -> Handler (DRResponse c)
 failCookie2 req x y cookie = failWithLog2 req x y >>= \resp ->
                              return $ resp{ drCookie = cookie }
 
@@ -136,7 +136,7 @@ instance ToJSON RepoScript
 
 instance FromHttpApiData Format
     where parseUrlPiece   = read . T.unpack
-          parseQueryParam = fromUrlPiece
+          parseQueryParam = parseUrlPiece
 
 ------------------------------------------------------------
 -- FromFormUrlEncoded instances.
@@ -191,3 +191,9 @@ instance FromFormUrlEncoded ExecScript where
         artifactsoff = fmap (=="true") $ lookup "artifactsoff" pairs
         robjects  = fmap (T.splitOn ",") $ lookup "robjects" pairs
     return ExecScript{..}
+
+instance FromFormUrlEncoded RqProject where
+  fromFormUrlEncoded pairs = do
+    format     <- readFrom pairs "format"
+    project    <- textFrom pairs "project"
+    return RqProject{..}
