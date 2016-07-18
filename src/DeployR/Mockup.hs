@@ -52,7 +52,7 @@ mock =
         :<|> (failCookie2 "pdir.list" :<|> failCookie0 "pdir.upload")
         :<|> failCookie2 "wspace.list"
        )
-  :<|> ((failCookie2 "repo.dir.list" :<|> failCookie0 "repo.dir.create")
+  :<|> ((failCookie2 "repo.dir.list" :<|> failCookie1 "repo.dir.create")
         :<|> (failCookie1 "repo.file.list" :<|> failCookie0 "repo.file.upload")
         :<|> (failCookie2 "repo.script.list" :<|> failCookie1 "repo.script.exec")
        )
@@ -196,3 +196,9 @@ instance FromFormUrlEncoded RqProject where
     format     <- readFrom pairs "format"
     project    <- textFrom pairs "project"
     return RqProject{..}
+
+instance FromFormUrlEncoded RqDir where
+  fromFormUrlEncoded pairs = do
+    format     <- readFrom pairs "format"
+    directory  <- textFrom pairs "directory"
+    return RqDir{..}

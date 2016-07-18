@@ -203,6 +203,8 @@ data DRProject = DRProject {
     deriving (Eq, Show, Read, Generic)
 
 instance FromJSON DRProject
+instance FromJSONPayload DRProject where
+  parseJSONPayload r = r .: "project" >>= parseJSON
 
 data DRExecution = DRExecution {
       console :: Text
@@ -212,6 +214,20 @@ data DRExecution = DRExecution {
         deriving (Eq, Show, Read, Generic)
 
 instance FromJSON DRExecution
+
+-- | Result of listing a workspace (resembles ExecResult)
+data WSObjects = WSObjects {
+      project     :: DRProject        -- compulsory in WS listing
+    , objects     :: Map Text RObject
+    }
+    deriving (Eq, Show, Read, Generic)
+
+instance FromJSON WSObjects
+instance FromJSONPayload WSObjects where
+  parseJSONPayload r = do
+      project     <- r .: "project" >>= parseJSON
+      objects     <- r .: "workspace" >>= (.: "objects") >>= parseObjects
+      return WSObjects{..}
 
 --------------------------------------------------
 -- input data (will be used in ReqBody FormUrlEncoded)
@@ -373,4 +389,18 @@ instance ToJSON RqProject
 instance ToFormUrlEncoded RqProject where
   toFormUrlEncoded RqProject{..} =
     [ formatEncoded, ("project", project) ]
--- could hack in some extra fields as free form fields here
+
+-- | specifying a directory to be created (or deleted)
+-- With some optional boolean fields, this could be used for update.
+-- With a destionation field, this could be used for move,copy,rename
+-- (none of this is implemented yet)
+data RqDir = RqDir {
+      format    :: Format
+    , directory :: Text
+    }
+    deriving (Eq, Show, Read, Generic)
+
+instance ToJSON RqDir
+instance ToFormUrlEncoded RqDir where
+  toFormUrlEncoded RqDir{..} =
+    [ formatEncoded, ("directory", directory) ]

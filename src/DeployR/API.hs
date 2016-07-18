@@ -70,10 +70,9 @@ type DeployRExecAPI =
               :> Post '[JSON] (DRResponse ExecResult)
       :<|> "flush" :> ReqBody '[FormUrlEncoded] RqProject
              :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
-             :> Post '[JSON] (DRResponse ()) -- TODO wrong response type
+             :> Post '[JSON] (DRResponse DRProject)
       -- and a few more, concerned with exec. history, not too relevant for us
     )
-              -- something is strange above, confuses Emacs haskell-mode...
 
 -- sub-APIs
 execCode :<|> execScript :<|> execFlush = execAPI
@@ -101,7 +100,7 @@ type DeployRWorkspaceAPI =
       :> QueryParam "format" Format
       :> QueryParam "project" Text
       :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
-             :> Get '[JSON] (DRResponse ()) -- TODO wrong response type
+             :> Get '[JSON] (DRResponse WSObjects)
      -- and a lot more...
     )
 -- client functions
@@ -129,7 +128,8 @@ type DeployRDirAPI =
            :> QueryParam "directory" Text -- optional
            :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
               :> Get '[JSON] (DRResponse ()) -- TODO wrong return type
-      :<|> "create" -- :> ReqBody something missing
+      :<|> "create" 
+             :> ReqBody '[FormUrlEncoded] RqDir
              :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
              :> Post '[JSON] (DRResponse ()) -- TODO wrong return type
       -- and a lot more...
