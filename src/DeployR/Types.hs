@@ -97,8 +97,8 @@ instance FromJSONPayload () where
 data DRUser = DRUser {
       username    :: Text
     , displayname :: Text
-    , cookie      :: Text
-    , permissions :: DRPermissions
+    , cookie      :: Maybe Text
+    , permissions :: Object
     -- this is the "user" structure, "limits" struture has been omitted
     }
     deriving (Eq, Show, Read, Generic)

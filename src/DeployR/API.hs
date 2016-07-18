@@ -39,7 +39,7 @@ type DeployRUserAPI =
     (      "login" :> ReqBody '[FormUrlEncoded] LoginData
                    :> Post '[JSON] (DRResponse DRUser)
       :<|> "logout" :> ReqBody '[FormUrlEncoded] LogoutData
-                   :> Header "application:JSESSIONID" Text
+                   :> Header "Cookie" Text
                    :> Post '[JSON] (DRResponse ())
     )
 
@@ -63,13 +63,13 @@ execAPI :<|> pDirAPI :<|> wspaceAPI = projectAPI
 type DeployRExecAPI =
     "execute" :>
     ( "code" :> ReqBody '[FormUrlEncoded] ExecCode
-             :> Header "application:JSESSIONID" Text
+             :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
              :> Post '[JSON] (DRResponse ExecResult)
       :<|> "script" :> ReqBody '[FormUrlEncoded] ExecScript
-              :> Header "application:JSESSIONID" Text
+              :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
               :> Post '[JSON] (DRResponse ExecResult)
       :<|> "flush" :> ReqBody '[FormUrlEncoded] RqProject
-             :> Header "application:JSESSIONID" Text
+             :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
              :> Post '[JSON] (DRResponse ()) -- TODO wrong response type
       -- and a few more, concerned with exec. history, not too relevant for us
     )
@@ -83,10 +83,10 @@ type DeployRPDirAPI =
     "directory" :>
     (      "list" :> QueryParam "format" Format -- not really needed
              :> QueryParam "project" Text
-             :> Header "application:JSESSIONID" Text
+             :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
              :> Get '[JSON] (DRResponse [ProjectFile])
       :<|> "upload" -- :> ReqBody something missing
-             :> Header "application:JSESSIONID" Text
+             :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
              :> Post '[JSON] (DRResponse ProjectFile)
       -- and a lot more...
     )
@@ -100,7 +100,7 @@ type DeployRWorkspaceAPI =
     ( "list"
       :> QueryParam "format" Format
       :> QueryParam "project" Text
-      :> Header "application:JSESSIONID" Text
+      :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
              :> Get '[JSON] (DRResponse ()) -- TODO wrong response type
      -- and a lot more...
     )
@@ -127,10 +127,10 @@ type DeployRDirAPI =
     (      "list"
            :> QueryParam "format" Format
            :> QueryParam "directory" Text -- optional
-           :> Header "application:JSESSIONID" Text
+           :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
               :> Get '[JSON] (DRResponse ()) -- TODO wrong return type
       :<|> "create" -- :> ReqBody something missing
-             :> Header "application:JSESSIONID" Text
+             :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
              :> Post '[JSON] (DRResponse ()) -- TODO wrong return type
       -- and a lot more...
     )
@@ -145,10 +145,10 @@ type DeployRFileAPI =
            :> QueryParam "format" Format
 --           :> QueryParam "filename" Text -- optional
 --           :> QueryParam "directory" Text -- optional, with filename
-           :> Header "application:JSESSIONID" Text
+           :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
               :> Get '[JSON] (DRResponse [RepoFile])
       :<|> "upload" {- :> ReqBody something missing -}
-              :> Header "application:JSESSIONID" Text
+              :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
               :> Post '[JSON] (DRResponse RepoFile)
       -- and a lot more...
     )
@@ -164,11 +164,11 @@ type DeployRScriptAPI =
     (      "list" {- :> QueryParam missing -}
            :> QueryParam "format" Format
            :> QueryParam "filename" Text -- optional
-           :> Header "application:JSESSIONID" Text
+           :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
               :> Get '[JSON] (DRResponse [RepoScript])
       :<|> "execute" 
            :> ReqBody '[FormUrlEncoded] ExecScript -- project ignored!
-           :> Header "application:JSESSIONID" Text
+           :> Header "Cookie" Text -- will contain "JSESSIONID=<cookie>"
               :> Post '[JSON] (DRResponse ExecResult)
       -- and two more ...
     )
