@@ -49,7 +49,7 @@ loginTest = do
   result <- runExceptT (login itsMe mgr base)
   print result
 
--- | 
+-- | run a request with the given cookie to authenticate
 withCookieRun :: (FromJSONPayload b, Show b) =>
                  BaseUrl ->
                  Text ->
@@ -63,3 +63,22 @@ withCookieRun base cookie req reqData = do
 
 -- we would like an "inSession" combinator to run a ClientM with an
 -- authentication header on each action (the httpcookie)
+-- | run a request after logging in, and log out afterwards
+-- Example use:
+-- *DeployR> loggedInAs itsMe (execCode (ExecCode{...} )) $ BaseUrl{...}
+loggedInAs :: LoginData ->
+              (Maybe Text -> Manager -> BaseUrl -> ClientM (DRResponse b)) ->
+              BaseUrl ->
+              IO (Either ServantError (DRResponse b))
+loggedInAs loginData request baseUrl = do
+  mgr <- getMgr
+  runExceptT $ do
+    loggedIn <- login loginData mgr baseUrl
+    cookieStr <- maybe (fail "no cookie on login")
+                       (return . T.append "JSESSIONID=")
+                       (drCookie loggedIn)
+    let sessionCookie = Just cookieStr
+    result   <- request sessionCookie mgr baseUrl
+    -- problem: if this fails, the logout call is skipped
+    logout (LogoutData FormatJSON Nothing) sessionCookie mgr baseUrl
+    return result
