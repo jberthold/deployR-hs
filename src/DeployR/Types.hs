@@ -107,16 +107,18 @@ instance FromJSON DRUser
 instance FromJSONPayload DRUser where
   parseJSONPayload r = r .: "user" >>= parseJSON
 
-data DRPermissions = DRPermissions {
-      scriptManager  :: Bool
-    , powerUser      :: Bool
-    , packageManager :: Bool
-    , administrator  :: Bool
-    , basicUser      :: Bool
-    }
-    deriving (Eq, Show, Read, Generic)
+-- These field names are returned in ALL_CAPS... contrary to the doc.s
+-- Omitting this type for now, we don't expect to need it anyway.
+-- data DRPermissions = DRPermissions {
+--       scriptManager  :: Bool
+--     , powerUser      :: Bool
+--     , packageManager :: Bool
+--     , administrator  :: Bool
+--     , basicUser      :: Bool
+--     }
+--     deriving (Eq, Show, Read, Generic)
 
-instance FromJSON DRPermissions
+-- instance FromJSON DRPermissions
 
 -- | Files in the repository, represented in responses
 data RepoFile = RepoFile {

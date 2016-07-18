@@ -126,7 +126,6 @@ instance ToJSON (DRResponse a) where
  
 instance ToJSON RepoFile
 instance ToJSON DRUser
-instance ToJSON DRPermissions
 instance ToJSON ExecResult
 instance ToJSON DRProject
 instance ToJSON RObject
